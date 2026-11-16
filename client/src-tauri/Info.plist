@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Relay uses the microphone for calls and voice messages.</string>
+  <key>NSCameraUsageDescription</key>
+  <string>Relay uses the camera for video calls.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Relay uses your location when you choose to share it in a chat.</string>
+</dict>
+</plist>

@@ -1,0 +1,9 @@
+node_modules/
+target/
+dist/
+.env
+client/tsconfig.tsbuildinfo
+client/android/app/build/
+client/android/.gradle/
+client/ios/App/Pods/
+data/

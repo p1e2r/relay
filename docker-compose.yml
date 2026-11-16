@@ -1,0 +1,52 @@
+# Relay: self-hosted messenger.
+#   docker compose up -d                  # server + Postgres
+#   docker compose --profile turn up -d   # also run a TURN server for calls behind strict NATs
+services:
+  relay:
+    image: ${RELAY_IMAGE:-ghcr.io/p1e2r/relay-server:latest}
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${RELAY_PORT:-8080}:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://relay:${POSTGRES_PASSWORD:-relay}@db:5432/relay
+    volumes:
+      - relay-media:/data
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: relay
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-relay}
+      POSTGRES_DB: relay
+    volumes:
+      - relay-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relay"]
+      interval: 5s
+      retries: 10
+
+  turn:
+    profiles: ["turn"]
+    image: coturn/coturn:latest
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --listening-port=3478
+      - --fingerprint
+      - --lt-cred-mech
+      - --user=${TURN_USERNAME:-relay}:${TURN_CREDENTIAL:-change-me}
+      - --realm=relay
+      - --external-ip=${TURN_EXTERNAL_IP:-}
+
+volumes:
+  relay-db:
+  relay-media:
