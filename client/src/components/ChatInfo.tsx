@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, getServer, mediaUrl, upload } from "../api";
+import { api, getServer, isNative, mediaUrl, upload } from "../api";
 import { useStore } from "../store";
 import type { Chat, Message } from "../types";
 import { useUI } from "../ui-state";
@@ -227,7 +227,8 @@ function GroupInfo({ chat }: { chat: Chat }) {
   const isAdmin = chat.my_role === "admin" || chat.my_role === "owner";
   const canEdit = isAdmin || !chat.admins_only_edit;
   const patch = (body: object) => attempt(async () => useStore.getState().upsertChat(await api<Chat>("PATCH", `/chats/${chat.id}`, body)));
-  const inviteLink = chat.invite_code ? `${getServer()}/join/${chat.invite_code}` : "";
+  const webBase = isNative ? `${getServer()}/` : `${location.origin}${import.meta.env.BASE_URL}`;
+  const inviteLink = chat.invite_code ? `${webBase}join/${chat.invite_code}` : "";
 
   const members = [...chat.members].sort((a, b) => {
     if (a.user.id === me.id) return -1;

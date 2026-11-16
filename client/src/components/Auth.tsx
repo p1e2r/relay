@@ -64,7 +64,7 @@ export function Login() {
     <div className="auth">
       <div className="auth-card">
         <div className="auth-logo">
-          <img src="/icon.svg" alt="" width={64} height={64} />
+          <img src={import.meta.env.BASE_URL + "icon.svg"} alt="" width={64} height={64} />
           <h1>Relay</h1>
         </div>
 

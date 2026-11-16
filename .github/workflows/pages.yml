@@ -1,0 +1,58 @@
+name: Web app (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths: ["client/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check server address
+        env:
+          SERVER: ${{ vars.RELAY_DEFAULT_SERVER }}
+        run: |
+          if [ -z "$SERVER" ]; then
+            echo "::error::Set the repository variable RELAY_DEFAULT_SERVER (e.g. https://relay.example.com) under Settings > Secrets and variables > Actions > Variables."
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Build
+        working-directory: client
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_DEFAULT_SERVER: ${{ vars.RELAY_DEFAULT_SERVER }}
+        run: |
+          npm ci
+          npm run build
+          # GitHub Pages has no SPA routing: serve the app for unknown paths like /join/CODE
+          cp dist/index.html dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

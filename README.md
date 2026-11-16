@@ -77,6 +77,16 @@ Pushing to `main` (or a `v*` tag) also builds and pushes the image to GHCR autom
 | `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM` | | SMS through Twilio |
 | `SMS_WEBHOOK_URL` / `SMS_WEBHOOK_AUTH` | | SMS through your own gateway |
 
+## Web app on GitHub Pages
+
+The web app can also be hosted on GitHub Pages at `https://p1e2r.github.io/relay/`, talking to your own server:
+
+1. Settings → Pages → Source: **GitHub Actions**.
+2. Settings → Secrets and variables → Actions → Variables: add `RELAY_DEFAULT_SERVER` = your server's HTTPS address (for example your Cloudflare tunnel hostname).
+3. Push to `main` (or run the "Web app (GitHub Pages)" workflow). Invite links then point at the Pages URL.
+
+The server must be HTTPS: Pages is HTTPS, and browsers block calls from an HTTPS page to a plain-http server.
+
 ## Apps
 
 All three use the same React client in `client/`. In the desktop and mobile apps, the sign-in screen asks for your server address.

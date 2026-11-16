@@ -24,7 +24,8 @@ function safeSet(k: string, v: string | null) {
 /** In the browser the app is served by the server itself, so the server is the page's origin. */
 export function defaultServer(): string {
   const baked = import.meta.env.VITE_DEFAULT_SERVER as string | undefined;
-  if (isNative && baked) return baked.replace(/\/+$/, "");
+  // Native apps and a web build hosted elsewhere (e.g. GitHub Pages) talk to the server set at build time.
+  if (baked) return baked.replace(/\/+$/, "");
   if (!isNative && location.protocol.startsWith("http")) {
     // Vite dev server proxies /api and /ws, so same-origin works there too.
     return location.origin;

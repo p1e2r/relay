@@ -51,7 +51,7 @@ function RelayApp() {
     document.title = unread ? `(${unread}) Relay` : "Relay";
   }, [unread]);
 
-  if (booting) return <div className="splash"><img src="/icon.svg" alt="" width={72} /></div>;
+  if (booting) return <div className="splash"><img src={import.meta.env.BASE_URL + "icon.svg"} alt="" width={72} /></div>;
   if (!me) return (<><Login /><Toasts /></>);
 
   return (
@@ -62,7 +62,7 @@ function RelayApp() {
           code={joinCode}
           onClose={() => {
             setJoinCode(null);
-            history.replaceState(null, "", location.pathname.replace(/\/join\/[A-Za-z0-9]+/, "/") || "/");
+            history.replaceState(null, "", import.meta.env.BASE_URL);
           }}
         />
       )}
@@ -89,7 +89,7 @@ function NavRail() {
   const isActive = (v: LeftView) => (v === "chats" ? ["chats", "archived", "new-chat", "new-group"].includes(left) : left === v);
   return (
     <nav className="rail" aria-label="Main">
-      <img className="rail-logo" src="/icon.svg" alt="Relay" width={36} height={36} />
+      <img className="rail-logo" src={import.meta.env.BASE_URL + "icon.svg"} alt="Relay" width={36} height={36} />
       {items.map((it) => (
         <button key={it.view} className={"rail-btn" + (isActive(it.view) ? " active" : "")} onClick={() => setLeft(it.view)} title={it.label}>
           <span className="rail-icon">
@@ -130,7 +130,7 @@ function Main() {
           <ChatView chat={chat} />
         ) : (
           <div className="empty-main">
-            <img src="/icon.svg" alt="" width={96} />
+            <img src={import.meta.env.BASE_URL + "icon.svg"} alt="" width={96} />
             <h1>Relay</h1>
             <p className="muted">Send and receive messages, photos, voice notes and calls.<br />Use Relay on your phone, computer and browser at the same time.</p>
           </div>

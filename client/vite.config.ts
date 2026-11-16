@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   // Root paths: deep links like /join/CODE must still find /assets. Tauri and Capacitor serve from the root too.
-  base: "/",
+  base: process.env.VITE_BASE || "/",
   server: {
     port: 5173,
     strictPort: true,

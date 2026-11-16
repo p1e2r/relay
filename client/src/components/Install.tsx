@@ -89,7 +89,7 @@ export function InstallGate() {
     return (
       <div className="install">
         <div className="install-card">
-          <img src="/icon.svg" alt="" width={84} height={84} className="install-logo" />
+          <img src={import.meta.env.BASE_URL + "icon.svg"} alt="" width={84} height={84} className="install-logo" />
           <h1>Open in your browser</h1>
           <p className="muted">Relay can't be installed from inside this app. Open this page in {os === "ios" ? "Safari" : "Chrome"} to install it.</p>
           <p className="muted small">Tap the menu (⋯ or ⋮) and choose <b>Open in browser</b>, or copy the link.</p>
@@ -118,7 +118,7 @@ export function InstallGate() {
   return (
     <div className="install">
       <div className="install-card">
-        <img src="/icon.svg" alt="" width={84} height={84} className="install-logo" />
+        <img src={import.meta.env.BASE_URL + "icon.svg"} alt="" width={84} height={84} className="install-logo" />
         <h1>Get Relay</h1>
         {installed ? (
           <>
