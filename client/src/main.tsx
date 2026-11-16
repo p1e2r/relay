@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "./install";
 import { App } from "./App";
 import { isNative, isTauri } from "./api";
 import "@fontsource-variable/plus-jakarta-sans";
@@ -11,8 +12,8 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>
 );
 
-if ("serviceWorker" in navigator && !isNative && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+if ("serviceWorker" in navigator && !isNative && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
 if (isTauri) {

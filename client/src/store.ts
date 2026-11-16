@@ -272,7 +272,7 @@ function notify(m: Message) {
   }
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
   try {
-    const n = new Notification(title, { body: prefix + messagePreview(m), tag: m.chat_id, icon: "./icon-192.png" });
+    const n = new Notification(title, { body: prefix + messagePreview(m), tag: m.chat_id, icon: "/icon-192.png" });
     n.onclick = () => {
       window.focus();
       useStore.getState().openChat(m.chat_id);

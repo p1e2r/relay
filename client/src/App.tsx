@@ -11,6 +11,8 @@ import { ForwardDialog, JoinDialog, Lightbox, MessageInfoDialog } from "./compon
 import { Settings } from "./components/Settings";
 import { Sidebar } from "./components/Sidebar";
 import { Avatar, Icon, Toasts } from "./components/ui";
+import { InstallGate } from "./components/Install";
+import { shouldGate, takePendingJoin } from "./install";
 import type { LeftView } from "./ui-state";
 
 function joinCodeFromUrl(): string | null {
@@ -18,10 +20,17 @@ function joinCodeFromUrl(): string | null {
   return m ? m[1] : null;
 }
 
+const GATED = shouldGate();
+
 export function App() {
+  if (GATED) return <InstallGate />;
+  return <RelayApp />;
+}
+
+function RelayApp() {
   const me = useStore((s) => s.me);
   const [booting, setBooting] = useState(!!getToken());
-  const [joinCode, setJoinCode] = useState<string | null>(joinCodeFromUrl());
+  const [joinCode, setJoinCode] = useState<string | null>(() => joinCodeFromUrl() || takePendingJoin());
 
   useEffect(() => {
     if (!getToken()) return;
@@ -42,7 +51,7 @@ export function App() {
     document.title = unread ? `(${unread}) Relay` : "Relay";
   }, [unread]);
 
-  if (booting) return <div className="splash"><img src="./icon.svg" alt="" width={72} /></div>;
+  if (booting) return <div className="splash"><img src="/icon.svg" alt="" width={72} /></div>;
   if (!me) return (<><Login /><Toasts /></>);
 
   return (
@@ -80,7 +89,7 @@ function NavRail() {
   const isActive = (v: LeftView) => (v === "chats" ? ["chats", "archived", "new-chat", "new-group"].includes(left) : left === v);
   return (
     <nav className="rail" aria-label="Main">
-      <img className="rail-logo" src="./icon.svg" alt="Relay" width={36} height={36} />
+      <img className="rail-logo" src="/icon.svg" alt="Relay" width={36} height={36} />
       {items.map((it) => (
         <button key={it.view} className={"rail-btn" + (isActive(it.view) ? " active" : "")} onClick={() => setLeft(it.view)} title={it.label}>
           <span className="rail-icon">
@@ -121,7 +130,7 @@ function Main() {
           <ChatView chat={chat} />
         ) : (
           <div className="empty-main">
-            <img src="./icon.svg" alt="" width={96} />
+            <img src="/icon.svg" alt="" width={96} />
             <h1>Relay</h1>
             <p className="muted">Send and receive messages, photos, voice notes and calls.<br />Use Relay on your phone, computer and browser at the same time.</p>
           </div>

@@ -49,7 +49,7 @@ cp .env.example .env        # set POSTGRES_PASSWORD and an SMS provider
 docker compose up -d        # Relay on http://localhost:8080
 ```
 
-The image serves the API, the WebSocket and the web app on one port. Put it behind HTTPS (Caddy, Traefik, Nginx or a Cloudflare tunnel): browsers only allow the camera, microphone, notifications and PWA install on `https://` or `localhost`.
+The image serves the API, the WebSocket and the web app on one port. Opened in a normal browser tab, the web app shows only an install screen for the visitor's device: a one-tap install button on Chrome, Edge and Samsung Internet, step-by-step instructions on Safari, and a desktop download link on Mac, Windows and Linux. Inside an in-app browser (Instagram, Facebook and similar) it asks the visitor to open the link in a real browser. Messaging runs only in the installed app. Add `?browser` to the URL to use it in a tab anyway (handy for development or desktop Firefox). Invite links survive the install. Put it behind HTTPS (Caddy, Traefik, Nginx or a Cloudflare tunnel): browsers only allow the camera, microphone, notifications and PWA install on `https://` or `localhost`.
 
 **SMS codes.** Set `TWILIO_*`, or set `SMS_WEBHOOK_URL` to have Relay POST `{"to","code","message"}` to any SMS gateway. If neither is set, codes are printed in the server log (`docker compose logs relay`), which is handy for testing.
 

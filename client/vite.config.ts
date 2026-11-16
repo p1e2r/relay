@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // Relative paths so the same build works on the web, in Tauri and in Capacitor.
-  base: "./",
+  // Root paths: deep links like /join/CODE must still find /assets. Tauri and Capacitor serve from the root too.
+  base: "/",
   server: {
     port: 5173,
     strictPort: true,
