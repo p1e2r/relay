@@ -53,7 +53,7 @@ The image serves the API, the WebSocket and the web app on one port. Opened in a
 
 **SMS codes.** Set `TWILIO_*`, or set `SMS_WEBHOOK_URL` to have Relay POST `{"to","code","message"}` to any SMS gateway. If neither is set, codes are printed in the server log (`docker compose logs relay`), which is handy for testing.
 
-**Calls behind strict NATs.** Run `docker compose --profile turn up -d` and set `TURN_URLS=turn:your.host:3478`, `TURN_USERNAME`, `TURN_CREDENTIAL` and `TURN_EXTERNAL_IP`.
+**Calls on mobile data / CGNAT.** Run the bundled TURN relay: `docker compose --profile turn up -d`, with `TURN_SECRET` (any long random string), `TURN_EXTERNAL_IP` and `TURN_URLS` set in `.env`. On your router, forward **3478 UDP+TCP** and **49160-49200 UDP** to the server. `TURN_URLS` must reach your home IP directly: use the IP or a DNS-only (grey cloud) record such as `turn.example.com`, not the Cloudflare tunnel hostname, because calls use UDP. Relay gives each user short-lived credentials, so the secret never leaves the server. (A static `TURN_USERNAME`/`TURN_CREDENTIAL` also works for other TURN providers.)
 
 ### Build and push the Docker image
 

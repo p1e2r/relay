@@ -33,6 +33,10 @@ services:
       interval: 5s
       retries: 10
 
+  # TURN relay for calls when phones can't connect directly (mobile data / CGNAT).
+  # Needs these forwarded on your router to this machine:
+  #   3478 UDP + TCP, and 49160-49200 UDP (the relay range)
+  # This one can NOT go through a Cloudflare tunnel (calls use UDP).
   turn:
     profiles: ["turn"]
     image: coturn/coturn:latest
@@ -41,11 +45,20 @@ services:
     command:
       - -n
       - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
       - --fingerprint
-      - --lt-cred-mech
-      - --user=${TURN_USERNAME:-relay}:${TURN_CREDENTIAL:-change-me}
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET:?set TURN_SECRET in .env}
       - --realm=relay
-      - --external-ip=${TURN_EXTERNAL_IP:-}
+      - --external-ip=${TURN_EXTERNAL_IP:?set TURN_EXTERNAL_IP in .env}
+      - --no-cli
+      - --no-multicast-peers
+      # never relay into your home network
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
 
 volumes:
   relay-db:

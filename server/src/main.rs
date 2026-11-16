@@ -32,6 +32,8 @@ pub struct Config {
     pub turn_urls: Vec<String>,
     pub turn_username: String,
     pub turn_credential: String,
+    /// coturn `static-auth-secret`: when set, clients get short-lived TURN credentials.
+    pub turn_secret: String,
     pub max_upload_mb: usize,
 }
 
@@ -69,6 +71,7 @@ async fn main() -> anyhow_free::Result {
         turn_urls: env_list("TURN_URLS", ""),
         turn_username: std::env::var("TURN_USERNAME").unwrap_or_default(),
         turn_credential: std::env::var("TURN_CREDENTIAL").unwrap_or_default(),
+        turn_secret: std::env::var("TURN_SECRET").unwrap_or_default(),
         max_upload_mb: std::env::var("MAX_UPLOAD_MB").ok().and_then(|v| v.parse().ok()).unwrap_or(100),
     };
 

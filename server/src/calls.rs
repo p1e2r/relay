@@ -28,12 +28,27 @@ pub fn routes() -> Router<AppState> {
     Router::new().route("/calls", get(call_log)).route("/ice", get(ice_servers))
 }
 
-async fn ice_servers(State(st): State<AppState>, _auth: AuthUser) -> Json<Value> {
+/// Time-limited TURN credentials (the coturn "TURN REST API" scheme):
+/// username = "<expiry unix time>:<user id>", credential = base64(HMAC-SHA1(secret, username)).
+fn turn_rest_credentials(secret: &str, user: Uuid, ttl_secs: i64) -> (String, String) {
+    use base64::Engine;
+    use hmac::{Hmac, Mac};
+    let username = format!("{}:{}", Utc::now().timestamp() + ttl_secs, user);
+    let mut mac = Hmac::<sha1::Sha1>::new_from_slice(secret.as_bytes()).expect("hmac accepts any key length");
+    mac.update(username.as_bytes());
+    let credential = base64::engine::general_purpose::STANDARD.encode(mac.finalize().into_bytes());
+    (username, credential)
+}
+
+async fn ice_servers(State(st): State<AppState>, auth: AuthUser) -> Json<Value> {
     let mut servers = vec![];
     if !st.config.stun_urls.is_empty() {
         servers.push(json!({ "urls": st.config.stun_urls }));
     }
-    if !st.config.turn_urls.is_empty() {
+    if !st.config.turn_urls.is_empty() && !st.config.turn_secret.is_empty() {
+        let (username, credential) = turn_rest_credentials(&st.config.turn_secret, auth.user_id, 24 * 3600);
+        servers.push(json!({ "urls": st.config.turn_urls, "username": username, "credential": credential }));
+    } else if !st.config.turn_urls.is_empty() {
         servers.push(json!({
             "urls": st.config.turn_urls,
             "username": st.config.turn_username,
