@@ -92,6 +92,14 @@ npm run ios              # build, sync and open Xcode (macOS only)
 
 Pushing a `v*` tag builds the macOS (Apple Silicon and Intel), Windows and Linux desktop installers plus an Android APK, and attaches them to a draft GitHub release (`.github/workflows/apps.yml`).
 
+## Publishing the Android app (Galaxy Store / APK)
+
+1. Create the upload key once with `./scripts/android-upload-key.sh`, then add the repo secrets it prints (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`).
+2. Set the repo variable `RELAY_DEFAULT_SERVER` (for example `https://relay.example.com`). The store build then opens straight onto your server instead of asking for an address.
+3. Set `REVIEW_PHONE` and `REVIEW_CODE` on the server. That number always accepts the fixed code and gets no SMS. Give both to the store reviewer.
+4. Push a `v*` tag. The release gets a signed `app-release.apk` (for the Galaxy Store and direct download) and an `.aab`.
+5. Privacy policy URL: `https://<your server>/privacy.html`. Edit `client/public/privacy.html` first with your name and contact email.
+
 ## Development
 
 ```bash
