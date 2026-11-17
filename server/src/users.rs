@@ -41,6 +41,7 @@ struct UpdateMe {
     privacy_photo: Option<String>,
     privacy_about: Option<String>,
     privacy_groups: Option<String>,
+    privacy_messages: Option<String>,
     read_receipts: Option<bool>,
 }
 
@@ -68,6 +69,9 @@ async fn update_me(State(st): State<AppState>, auth: AuthUser, Json(req): Json<U
     for p in [&req.privacy_last_seen, &req.privacy_photo, &req.privacy_about, &req.privacy_groups] {
         check_privacy(p)?;
     }
+    if !matches!(req.privacy_messages.as_deref(), None | Some("everyone") | Some("contacts")) {
+        return Err(AppError::bad_request("Who can message you must be everyone or contacts"));
+    }
     if let Some(n) = &req.name {
         if n.trim().is_empty() || n.chars().count() > 25 {
             return Err(AppError::bad_request("Name must be 1–25 characters"));
@@ -85,7 +89,8 @@ async fn update_me(State(st): State<AppState>, auth: AuthUser, Json(req): Json<U
             privacy_photo = COALESCE($7, privacy_photo),
             privacy_about = COALESCE($8, privacy_about),
             privacy_groups = COALESCE($9, privacy_groups),
-            read_receipts = COALESCE($10, read_receipts)
+            read_receipts = COALESCE($10, read_receipts),
+            privacy_messages = COALESCE($11, privacy_messages)
          WHERE id = $1",
     )
     .bind(auth.user_id)
@@ -98,6 +103,7 @@ async fn update_me(State(st): State<AppState>, auth: AuthUser, Json(req): Json<U
     .bind(req.privacy_about)
     .bind(req.privacy_groups)
     .bind(req.read_receipts)
+    .bind(req.privacy_messages)
     .execute(&st.db)
     .await?;
     let aud = audience(&st, auth.user_id).await?;

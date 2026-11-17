@@ -22,6 +22,7 @@ pub struct Me {
     pub privacy_photo: String,
     pub privacy_about: String,
     pub privacy_groups: String,
+    pub privacy_messages: String,
     pub read_receipts: bool,
     #[sqlx(skip)]
     pub has_pin: bool,
@@ -30,7 +31,7 @@ pub struct Me {
 
 pub async fn load_me(db: &PgPool, id: Uuid) -> AppResult<Me> {
     let mut me: Me = sqlx::query_as(
-        "SELECT id, phone, name, about, avatar_id, privacy_last_seen, privacy_photo, privacy_about, privacy_groups, read_receipts, created_at FROM users WHERE id = $1",
+        "SELECT id, phone, name, about, avatar_id, privacy_last_seen, privacy_photo, privacy_about, privacy_groups, privacy_messages, read_receipts, created_at FROM users WHERE id = $1",
     )
     .bind(id)
     .fetch_one(db)
@@ -510,4 +511,18 @@ pub async fn chat_member_ids(db: &PgPool, chat_id: Uuid) -> AppResult<Vec<Uuid>>
 
 pub fn is_admin(role: &str) -> bool {
     role == "admin" || role == "owner"
+}
+
+/// Whether `sender` may message or call `recipient` under the recipient's "who can message me" setting.
+pub async fn may_contact(db: &PgPool, sender: Uuid, recipient: Uuid) -> AppResult<bool> {
+    let (allowed,): (bool,) = sqlx::query_as(
+        "SELECT u.privacy_messages = 'everyone'
+             OR EXISTS (SELECT 1 FROM contacts c WHERE c.owner_id = u.id AND c.contact_id = $1)
+         FROM users u WHERE u.id = $2",
+    )
+    .bind(sender)
+    .bind(recipient)
+    .fetch_one(db)
+    .await?;
+    Ok(allowed)
 }

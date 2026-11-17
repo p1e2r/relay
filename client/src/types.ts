@@ -10,6 +10,7 @@ export interface Me {
   privacy_photo: Privacy;
   privacy_about: Privacy;
   privacy_groups: Privacy;
+  privacy_messages: "everyone" | "contacts";
   read_receipts: boolean;
   has_pin: boolean;
   created_at: string;

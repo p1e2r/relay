@@ -131,6 +131,9 @@ pub async fn handle_event(st: &AppState, user: Uuid, kind: &str, ev: &Value) -> 
                     if blocked.is_some() {
                         return Err(AppError::forbidden("Can't call this contact"));
                     }
+                    if !models::may_contact(&st.db, user, other).await? {
+                        return Err(AppError::forbidden("This person only accepts calls from their contacts"));
+                    }
                 }
             }
             {

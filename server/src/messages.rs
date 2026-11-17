@@ -128,6 +128,13 @@ pub async fn create_message(
             if rows.iter().any(|r| r.0 == sender) {
                 return Err(AppError::forbidden("Unblock this contact to send a message"));
             }
+            if !models::may_contact(&st.db, sender, *other).await? {
+                return Err(AppError::new(
+                    axum::http::StatusCode::FORBIDDEN,
+                    "contacts_only",
+                    "This person only accepts messages from their contacts",
+                ));
+            }
             if !rows.is_empty() {
                 blocked_recipients.push(*other);
             }

@@ -169,6 +169,16 @@ function PrivacySettings() {
         <PrivacyChoice label="Profile photo" value={me.privacy_photo} onChange={(v) => set({ privacy_photo: v })} />
         <PrivacyChoice label="About" value={me.privacy_about} onChange={(v) => set({ privacy_about: v })} />
         <PrivacyChoice label="Who can add me to groups" value={me.privacy_groups} onChange={(v) => set({ privacy_groups: v })} />
+        <label className="row">
+          <div className="grow">
+            <div>Who can message and call me</div>
+            <div className="muted small">With "My contacts", people you haven't saved can't start a chat or call you.</div>
+          </div>
+          <select value={me.privacy_messages} onChange={(e) => set({ privacy_messages: e.target.value as Me["privacy_messages"] })}>
+            <option value="everyone">Everyone</option>
+            <option value="contacts">My contacts</option>
+          </select>
+        </label>
         <Toggle
           label="Read receipts"
           hint="If turned off, you won't send or receive read receipts in personal chats. Read receipts are always sent in groups."

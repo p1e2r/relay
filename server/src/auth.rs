@@ -95,6 +95,41 @@ struct RequestCode {
     phone: String,
 }
 
+/// Who may create an account on this server (existing accounts can always sign in).
+/// SIGNUP_MODE=open (default) | allowlist | closed
+/// ALLOWED_PHONES=comma-separated numbers; an entry ending in * is a prefix, e.g. +6281*
+fn signup_allowed(phone: &str) -> bool {
+    let mode = std::env::var("SIGNUP_MODE").unwrap_or_else(|_| "open".into()).to_lowercase();
+    let review = std::env::var("REVIEW_PHONE").ok().and_then(|p| normalize_phone(&p).ok());
+    if review.as_deref() == Some(phone) {
+        return true;
+    }
+    match mode.as_str() {
+        "closed" => false,
+        "allowlist" => std::env::var("ALLOWED_PHONES").unwrap_or_default().split(',').map(str::trim).filter(|e| !e.is_empty()).any(|e| {
+            if let Some(prefix) = e.strip_suffix('*') {
+                let digits: String = prefix.chars().filter(|c| c.is_ascii_digit()).collect();
+                phone.trim_start_matches('+').starts_with(&digits)
+            } else {
+                normalize_phone(e).map(|n| n == phone).unwrap_or(false)
+            }
+        }),
+        _ => true,
+    }
+}
+
+async fn ensure_can_sign_in(st: &AppState, phone: &str) -> AppResult<()> {
+    let exists: Option<(i32,)> = sqlx::query_as("SELECT 1 FROM users WHERE phone = $1").bind(phone).fetch_optional(&st.db).await?;
+    if exists.is_none() && !signup_allowed(phone) {
+        return Err(AppError::new(
+            StatusCode::FORBIDDEN,
+            "signup_closed",
+            "This Relay server is invite-only. Ask the owner to add your number.",
+        ));
+    }
+    Ok(())
+}
+
 /// Optional store-review account: REVIEW_PHONE gets the fixed REVIEW_CODE instead of an SMS.
 fn review_code(phone: &str) -> Option<String> {
     let rp = std::env::var("REVIEW_PHONE").ok()?;
@@ -104,6 +139,8 @@ fn review_code(phone: &str) -> Option<String> {
 
 async fn request_code(State(st): State<AppState>, Json(req): Json<RequestCode>) -> AppResult<Json<Value>> {
     let phone = normalize_phone(&req.phone)?;
+    // Check before sending an SMS, so strangers can't spend your SMS credit.
+    ensure_can_sign_in(&st, &phone).await?;
     let recent: Option<(DateTime<Utc>,)> = sqlx::query_as("SELECT sent_at FROM otp_codes WHERE phone = $1")
         .bind(&phone)
         .fetch_optional(&st.db)
@@ -188,6 +225,7 @@ async fn verify(State(st): State<AppState>, Json(req): Json<Verify>) -> AppResul
             (id, false)
         }
         None => {
+            ensure_can_sign_in(&st, &phone).await?;
             let id = Uuid::new_v4();
             sqlx::query("INSERT INTO users (id, phone) VALUES ($1, $2)")
                 .bind(id)
